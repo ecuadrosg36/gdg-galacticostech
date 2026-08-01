@@ -209,7 +209,13 @@ def normalizar_grado(texto: str) -> str:
         return f"{nivel}_{grado}"
     return texto.lower().replace(" ", "_")
 
-def search(query: str, top_k: int = 3, grado: str | None = None, index_path: Path = INDEX_PATH) -> dict:
+def search(
+    query: str,
+    top_k: int = 3,
+    grado: str | None = None,
+    materia: str | None = None,
+    index_path: Path = INDEX_PATH,
+) -> dict:
     """Busca los chunks más relevantes para una consulta del estudiante.
 
     Si se especifica `grado`, la búsqueda se limita SOLO a los chunks de
@@ -217,8 +223,17 @@ def search(query: str, top_k: int = 3, grado: str | None = None, index_path: Pat
     importar la pregunta), se informa explícitamente en vez de devolver
     contenido de otro nivel.
 
+    Si además se especifica `materia` (la materia que el estudiante eligió
+    en la pantalla anterior), se restringe también a esa materia. Esto
+    evita, por ejemplo, que una pregunta de Comunicación termine
+    respondida con fragmentos de Matemática solo porque comparten alguna
+    palabra. Si no hay material para esa materia (ej. "Personal Social",
+    que todavía no tiene ningún PDF cargado), se informa explícitamente
+    en vez de forzar una respuesta con contenido de otra materia.
+
     Devuelve un dict con:
-      - status: "success" | "grado_sin_material" | "not_found"
+      - status: "success" | "grado_sin_material" | "materia_sin_material"
+                | "not_found"
       - resultados: lista de chunks (solo si status == "success")
     """
     global _cached_index
@@ -234,13 +249,19 @@ def search(query: str, top_k: int = 3, grado: str | None = None, index_path: Pat
 
     # Filtra primero por grado (si se pidió), ANTES de mirar similitud de texto.
     if grado is not None:
-        print(grado)
         grado_normalizado = normalizar_grado(grado)
         indices_grado = [i for i, c in enumerate(chunks) if c["grado"] == grado_normalizado]
         if not indices_grado:
             return {"status": "grado_sin_material", "resultados": []}
     else:
         indices_grado = list(range(len(chunks)))
+
+    # Luego filtra por materia (si se pidió), dentro de lo ya filtrado por grado.
+    if materia is not None:
+        indices_materia = [i for i in indices_grado if chunks[i]["materia"] == materia]
+        if not indices_materia:
+            return {"status": "materia_sin_material", "resultados": []}
+        indices_grado = indices_materia
 
     submatrix = matrix[indices_grado]
     query_vec = vectorizer.transform([query])

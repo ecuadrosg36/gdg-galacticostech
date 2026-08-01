@@ -29,8 +29,11 @@ def buscar_material(consulta: str, tool_context: ToolContext) -> dict:
             para esta pregunta en particular.
     """
     grado_estudiante = tool_context.state.get("grado")
+    materia_estudiante = tool_context.state.get("materia")
 
-    resultado = knowledge_base.search(consulta, top_k=3, grado=grado_estudiante)
+    resultado = knowledge_base.search(
+        consulta, top_k=3, grado=grado_estudiante, materia=materia_estudiante
+    )
 
     if resultado["status"] == "grado_sin_material":
         # Forma correcta y nativa de ADK
@@ -40,6 +43,16 @@ def buscar_material(consulta: str, tool_context: ToolContext) -> dict:
             "message": (
                 f"Todavía no hay material educativo cargado para el grado "
                 f"'{grado_estudiante}'. Avísale a tu profesor."
+            ),
+        }
+
+    if resultado["status"] == "materia_sin_material":
+        tool_context.state["ultimo_tema"] = None
+        return {
+            "status": "materia_sin_material",
+            "message": (
+                f"Todavía no hay material educativo cargado para la materia "
+                f"'{materia_estudiante}'. Avísale a tu profesor."
             ),
         }
 

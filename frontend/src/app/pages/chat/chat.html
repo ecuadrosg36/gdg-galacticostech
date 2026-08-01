@@ -40,6 +40,16 @@
         <div class="bubble" [class.gemma]="msg.role === 'gemma'" [class.student]="msg.role === 'student'">
           @if (msg.role === 'gemma') {
             <span [innerHTML]="formatearTexto(msg.text)"></span>
+            @if (ttsSupported()) {
+              <button
+                class="tts-btn"
+                [class.speaking]="speakingIndex() === $index"
+                (click)="leerEnVozAlta(msg.text, $index)"
+                [attr.aria-label]="speakingIndex() === $index ? 'Detener lectura' : 'Escuchar respuesta'"
+              >
+                {{ speakingIndex() === $index ? '⏸️' : '🔊' }}
+              </button>
+            }
           } @else {
             {{ msg.text }}
           }
@@ -57,7 +67,7 @@
   <footer class="composer">
     <input
       type="text"
-      [placeholder]="listening() ? 'Escuchando...' : 'Escribe tu pregunta de matemática...'"
+      [placeholder]="listening() ? 'Escuchando...' : 'Escribe tu pregunta de ' + materiaLabel() + '...'"
       [ngModel]="draft()"
       (ngModelChange)="draft.set($event)"
       (keyup.enter)="enviar()"

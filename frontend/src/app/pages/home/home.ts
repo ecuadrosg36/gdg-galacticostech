@@ -24,21 +24,21 @@ import { RouterLink } from '@angular/router';
         <a routerLink="/materias">Ver todo ›</a>
       </div>
       <div class="subject-grid">
-        <a routerLink="/chat" class="subject-card">
+        <a routerLink="/chat" [queryParams]="{ materia: 'matematica' }" class="subject-card">
           <span class="icon">📘</span>
           <div>
             <h4>Matemática</h4>
             <p>Sumas, restas y problemas</p>
           </div>
         </a>
-        <a routerLink="/chat" class="subject-card">
+        <a routerLink="/chat" [queryParams]="{ materia: 'comunicacion' }" class="subject-card">
           <span class="icon">📖</span>
           <div>
             <h4>Comunicación</h4>
             <p>Lectura y comprensión</p>
           </div>
         </a>
-        <a routerLink="/chat" class="subject-card wide">
+        <a routerLink="/chat" [queryParams]="{ materia: 'personal_social' }" class="subject-card wide">
           <span class="icon">🌎</span>
           <div>
             <h4>Personal Social</h4>

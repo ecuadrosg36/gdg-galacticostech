@@ -55,6 +55,7 @@ class ChatRequest(BaseModel):
     student_id: int
     session_id: int
     message: str
+    materia: Optional[str] = None
 
 class ChatResponse(BaseModel):
     reply: str

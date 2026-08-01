@@ -128,6 +128,26 @@
   font-style: italic;
 }
 
+.tts-btn {
+  display: block;
+  margin-top: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 64, 223, 0.1);
+  color: var(--primary, #0040df);
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tts-btn.speaking {
+  background: var(--primary, #0040df);
+  color: #fff;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
 .composer {
   display: flex;
   gap: 8px;

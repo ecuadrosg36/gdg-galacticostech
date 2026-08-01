@@ -33,6 +33,8 @@ def buscar_material(consulta: str, tool_context: ToolContext) -> dict:
     resultado = knowledge_base.search(consulta, top_k=3, grado=grado_estudiante)
 
     if resultado["status"] == "grado_sin_material":
+        # Forma correcta y nativa de ADK
+        tool_context.state["ultimo_tema"] = None
         return {
             "status": "grado_sin_material",
             "message": (
@@ -42,10 +44,14 @@ def buscar_material(consulta: str, tool_context: ToolContext) -> dict:
         }
 
     if resultado["status"] == "not_found":
+        tool_context.state["ultimo_tema"] = None
         return {
             "status": "not_found",
             "message": f"No se encontró material relacionado con: '{consulta}'.",
         }
+
+    # Asignación directa al diccionario del estado
+    tool_context.state["ultimo_tema"] = resultado["resultados"][0]["tema"]
 
     return {
         "status": "success",

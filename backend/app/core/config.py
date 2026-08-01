@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     mode: str
     ollama_model: str
     ollama_api_base: str
+    cors_origins: str = "http://localhost:4200"
     google_api_key: str
     gemini_gemma_model: str
     database_url: str

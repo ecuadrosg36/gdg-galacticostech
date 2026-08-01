@@ -1,23 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 
-import { environment } from '../../../environments/environment';
+import { StudentService } from '../../../services/student.service';
+import { TutorService } from '../../../services/tutor.service';
+import { StudentLoginResponse } from '../../../models/api.models';
 
 interface ChatMessage {
   role: 'student' | 'gemma';
   text: string;
-}
-
-interface ChatResponse {
-  reply: string;
-  mode: string;
-}
-
-interface Student {
-  id: number;
-  nombre: string;
-  grado: string;
 }
 
 @Component({
@@ -28,8 +18,6 @@ interface Student {
   styleUrl: './chat.css'
 })
 export class Chat {
-  protected readonly sessionId = crypto.randomUUID();
-
   protected readonly grados = [
     'Primero de primaria',
     'Segundo de primaria',
@@ -37,8 +25,11 @@ export class Chat {
   ];
 
   // Identificación del estudiante (no es login/autenticación: sin contraseña,
-  // solo nombre + grado, apropiado para niños de primaria).
-  protected readonly student = signal<Student | null>(null);
+  // solo nombre + grado, apropiado para niños de primaria). Internamente
+  // llama a POST /api/students/login, que busca por nombre+grado antes de
+  // crear uno nuevo (evita duplicar estudiantes en cada prueba) y abre una
+  // ChatSession real en la base de datos.
+  protected readonly student = signal<StudentLoginResponse | null>(null);
   protected readonly nombreInput = signal('');
   protected readonly gradoInput = signal(this.grados[0]);
   protected readonly startError = signal<string | null>(null);
@@ -49,7 +40,10 @@ export class Chat {
   protected readonly loading = signal(false);
   protected readonly mode = signal<string | null>(null);
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly studentService: StudentService,
+    private readonly tutorService: TutorService
+  ) {}
 
   comenzar(): void {
     const nombre = this.nombreInput().trim();
@@ -60,11 +54,8 @@ export class Chat {
     this.startLoading.set(true);
     this.startError.set(null);
 
-    this.http
-      .post<Student>(`${environment.apiUrl}/api/students`, {
-        nombre,
-        grado: this.gradoInput()
-      })
+    this.studentService
+      .login({ nombre, grado: this.gradoInput() })
       .subscribe({
         next: (res) => {
           this.student.set(res);
@@ -91,10 +82,10 @@ export class Chat {
     this.draft.set('');
     this.loading.set(true);
 
-    this.http
-      .post<ChatResponse>(`${environment.apiUrl}/api/chat`, {
+    this.tutorService
+      .sendMessage({
         student_id: estudiante.id,
-        session_id: this.sessionId,
+        session_id: estudiante.chat_session_id,
         message: texto
       })
       .subscribe({

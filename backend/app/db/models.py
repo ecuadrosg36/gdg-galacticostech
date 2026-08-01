@@ -35,8 +35,8 @@ class Student(Base):
     localidad = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    quiz_attempts = relationship("QuizAttempt", back_populates="estudiante")
-    chat_sessions = relationship("ChatSession", back_populates="estudiante")
+    quiz_attempts = relationship("QuizAttempt", back_populates="estudiante", cascade="all, delete-orphan")
+    chat_sessions = relationship("ChatSession", back_populates="estudiante", cascade="all, delete-orphan")
 
 
 class Material(Base):
@@ -84,7 +84,7 @@ class Quiz(Base):
     preguntas = Column(JSON, nullable=False)  # lista de {pregunta, opciones, correcta}
 
     material = relationship("Material", back_populates="quizzes")
-    intentos = relationship("QuizAttempt", back_populates="quiz")
+    intentos = relationship("QuizAttempt", back_populates="quiz", cascade="all, delete-orphan")
 
 
 class QuizAttempt(Base):
@@ -109,7 +109,7 @@ class ChatSession(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     estudiante = relationship("Student", back_populates="chat_sessions")
-    mensajes = relationship("ChatMessage", back_populates="sesion")
+    mensajes = relationship("ChatMessage", back_populates="sesion", cascade="all, delete-orphan")
 
 
 class ChatMessage(Base):

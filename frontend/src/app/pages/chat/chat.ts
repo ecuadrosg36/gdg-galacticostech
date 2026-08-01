@@ -40,10 +40,64 @@ export class Chat {
   protected readonly loading = signal(false);
   protected readonly mode = signal<string | null>(null);
 
+  // Preguntar por voz (Web Speech API): transcribe en el navegador y llena
+  // el campo de texto, no reemplaza el backend/tutor. Requiere internet
+  // para el reconocimiento de voz (servicio del navegador); las respuestas
+  // de Gemma siguen siendo 100% locales/offline.
+  protected readonly listening = signal(false);
+  protected readonly voiceSupported = signal(false);
+  private recognition: any = null;
+
   constructor(
     private readonly studentService: StudentService,
     private readonly tutorService: TutorService
-  ) {}
+  ) {
+    const SpeechRecognitionCtor =
+      typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+    if (SpeechRecognitionCtor) {
+      this.voiceSupported.set(true);
+      this.recognition = new SpeechRecognitionCtor();
+      this.recognition.lang = 'es-PE';
+      this.recognition.continuous = false;
+      this.recognition.interimResults = true;
+
+      this.recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        this.draft.set(transcript);
+      };
+
+      this.recognition.onend = () => {
+        this.listening.set(false);
+        if (this.draft().trim()) {
+          this.enviar();
+        }
+      };
+
+      this.recognition.onerror = () => {
+        this.listening.set(false);
+      };
+    }
+  }
+
+  toggleMic(): void {
+    if (!this.recognition || this.loading()) {
+      return;
+    }
+
+    if (this.listening()) {
+      this.recognition.stop();
+      this.listening.set(false);
+      return;
+    }
+
+    this.draft.set('');
+    this.listening.set(true);
+    this.recognition.start();
+  }
 
   comenzar(): void {
     const nombre = this.nombreInput().trim();

@@ -53,12 +53,23 @@
   <footer class="composer">
     <input
       type="text"
-      placeholder="Escribe tu pregunta de matemática..."
+      [placeholder]="listening() ? 'Escuchando...' : 'Escribe tu pregunta de matemática...'"
       [ngModel]="draft()"
       (ngModelChange)="draft.set($event)"
       (keyup.enter)="enviar()"
-      [disabled]="loading()"
+      [disabled]="loading() || listening()"
     />
-    <button class="send-btn" (click)="enviar()" [disabled]="loading()">➤</button>
+    @if (voiceSupported()) {
+      <button
+        class="mic-btn"
+        [class.listening]="listening()"
+        (click)="toggleMic()"
+        [disabled]="loading()"
+        [attr.aria-label]="listening() ? 'Detener grabación' : 'Preguntar por voz'"
+      >
+        {{ listening() ? '⏹️' : '🎤' }}
+      </button>
+    }
+    <button class="send-btn" (click)="enviar()" [disabled]="loading() || listening()">➤</button>
   </footer>
 }

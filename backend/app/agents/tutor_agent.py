@@ -14,9 +14,21 @@ En ambos casos sigue siendo Gemma 4 el modelo usado; solo cambia dónde corre.
 
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
+from google.genai import types
 
 from app.core.config import settings
 from app.agents.tools.search_material import buscar_material
+
+
+# Límite de tokens de salida: las respuestas largas tardan más en generarse
+# y un estudiante de primaria tampoco necesita párrafos largos. Bajarlo
+# acelera la respuesta percibida (menos tokens que esperar) y funciona
+# igual en modo local (Ollama vía LiteLLM) y en modo cloud (Gemini), porque
+# ADK traduce este mismo config a cada backend.
+GENERATION_CONFIG = types.GenerateContentConfig(
+    max_output_tokens=600,
+    temperature=0.4,
+)
 
 
 PROMPT_TUTOR = """
@@ -36,6 +48,8 @@ Reglas que debes seguir siempre:
   tema específico (aunque sí tienes contenido de su grado en otros temas),
   y sugiere preguntar sobre otro tema o consultarle a su profesor.
 - Usa un lenguaje adecuado para niños de primaria (6 a 11 años).
+- Responde SIEMPRE en máximo 3 oraciones cortas. Ve directo a la
+  explicación y a un ejemplo, sin introducciones largas.
 - No inventes información que no esté en el material encontrado.
 - Sé paciente, amable y motivador.
 """
@@ -70,6 +84,7 @@ def build_tutor_agent() -> Agent:
         description="Tutor educativo para estudiantes de primaria en zonas rurales.",
         instruction=PROMPT_TUTOR,
         tools=[buscar_material],
+        generate_content_config=GENERATION_CONFIG,
     )
 
 

@@ -20,7 +20,7 @@ from app.db.database import SessionLocal
 from app.db.models import Material
 from app.services.file_utils import asegurar_archivo_local
 
-STORAGE_DIR = Path(__file__).resolve().parent.parent.parent / "storage" / "materiales"
+STORAGE_DIR = Path(__file__).resolve().parent.parent.parent.parent / "storage" / "materiales"
 
 # Agrega aquí cada material que quieras precargar. Cuando tengan más
 # grados/materias, solo añaden una entrada más a esta lista.

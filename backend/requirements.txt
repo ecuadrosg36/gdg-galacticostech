@@ -7,3 +7,6 @@ python-dotenv
 PyMuPDF
 scikit-learn
 sqlalchemy
+requests
+pytest
+httpx

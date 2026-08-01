@@ -1,0 +1,9 @@
+google-adk
+litellm
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+PyMuPDF
+scikit-learn
+sqlalchemy

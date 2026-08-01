@@ -7,11 +7,15 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <section class="welcome">
-      <div class="mascot">🤖</div>
+      <div class="mascot"><img src="/img/gemma-mascot.png" alt="Gemma" /></div>
       <div>
         <p class="hi">¡Hola!</p>
         <h2>Soy Gemma 😊<br /><span>Seré tu compañera de aprendizaje.</span></h2>
       </div>
+    </section>
+
+    <section class="hero">
+      <img src="/img/hero-illustration.png" alt="Estudiantes aprendiendo con Galácticos Tech" />
     </section>
 
     <section class="section">
@@ -53,13 +57,15 @@ import { RouterLink } from '@angular/router';
     </section>
 
     <a routerLink="/chat" class="cta">
-      <span class="cta-icon">🤖</span>
+      <span class="cta-icon"><img src="/img/gemma-mascot.png" alt="" /></span>
       <div>
         <h4>Habla con Gemma</h4>
         <p>Resuelve tus dudas en cualquier momento.</p>
       </div>
       <span class="chevron">›</span>
     </a>
+
+    <a routerLink="/profesor" class="teacher-link">👩‍🏫 Panel del docente</a>
   `,
   styleUrl: './home.css'
 })

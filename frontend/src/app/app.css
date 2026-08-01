@@ -41,9 +41,14 @@
   justify-content: space-between;
   padding: 0 20px;
   height: 64px;
-  background: var(--surface);
+  background: rgba(248, 249, 255, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .brand {
@@ -62,6 +67,13 @@
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .brand h1 {
@@ -115,10 +127,15 @@
   font-weight: 600;
   color: var(--on-surface-variant);
   text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .nav-item span {
   font-size: 1.1rem;
+}
+
+.nav-item:active {
+  transform: scale(0.9);
 }
 
 .nav-item.active {

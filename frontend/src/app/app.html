@@ -10,43 +10,20 @@
     </div>
   </header>
 
-  <p class="greeting">Hola, soy Gemma 😊</p>
-
-  <main class="chat-window">
-    @for (msg of messages(); track $index) {
-      <div class="msg-row" [class.from-student]="msg.role === 'student'">
-        @if (msg.role === 'gemma') {
-          <div class="avatar-sm">🤖</div>
-        }
-        <div class="bubble" [class.gemma]="msg.role === 'gemma'" [class.student]="msg.role === 'student'">
-          {{ msg.text }}
-        </div>
-      </div>
-    }
-    @if (loading()) {
-      <div class="msg-row">
-        <div class="avatar-sm">🤖</div>
-        <div class="bubble gemma typing">Gemma está pensando...</div>
-      </div>
-    }
-  </main>
-
-  <footer class="composer">
-    <input
-      type="text"
-      placeholder="Escribe tu pregunta de matemática..."
-      [ngModel]="draft()"
-      (ngModelChange)="draft.set($event)"
-      (keyup.enter)="enviar()"
-      [disabled]="loading()"
-    />
-    <button class="send-btn" (click)="enviar()" [disabled]="loading()">➤</button>
-  </footer>
+  <router-outlet />
 
   <nav class="bottom-nav">
-    <div class="nav-item"><span>🏠</span>Inicio</div>
-    <div class="nav-item active"><span>📚</span>Materias</div>
-    <div class="nav-item"><span>📈</span>Progreso</div>
-    <div class="nav-item"><span>❓</span>Ayuda</div>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
+      <span>🏠</span>Inicio
+    </a>
+    <a routerLink="/materias" routerLinkActive="active" class="nav-item">
+      <span>📚</span>Materias
+    </a>
+    <a routerLink="/progreso" routerLinkActive="active" class="nav-item">
+      <span>📈</span>Progreso
+    </a>
+    <a routerLink="/ayuda" routerLinkActive="active" class="nav-item">
+      <span>❓</span>Ayuda
+    </a>
   </nav>
 </div>

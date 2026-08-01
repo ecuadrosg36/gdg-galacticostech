@@ -108,9 +108,59 @@ La app se divide en un frontend cliente (Angular) y un backend local que corre e
 
 ---
 
-## 📋 Pendientes
+## 🚀 Cómo correr el proyecto localmente
 
-- [ ] Definir nombre final del proyecto
-- [ ] Definir esquema de base de datos (usuarios, materiales, progreso, resultados de test)
-- [ ] Definir herramientas (tools) específicas del agente ADK
-- [ ] Definir set inicial de materiales/temas para la demo (currículo de qué grado/materia)
+### 1. Ollama + Gemma 4
+
+```bash
+# Instalar Ollama: https://ollama.com/download
+ollama pull gemma4:e2b
+# El servidor de Ollama queda corriendo en http://localhost:11434
+```
+
+### 2. Backend (FastAPI)
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/Scripts/activate   # Windows Git Bash; en cmd/PowerShell: .venv\Scripts\activate
+pip install -r requirements.txt requests   # "requests" falta en requirements.txt, se instala aparte
+cp .env.example .env
+python -m app.db.init_db
+python -m app.db.seed_data.seed_students
+uvicorn app.main:app --port 8000
+```
+
+La base de conocimiento (`backend/storage/index/kb_index.pkl`) ya viene pre-construida y
+commiteada con 283 chunks del cuadernillo de Matemática - Primer Grado (MINEDU), así que
+no hace falta descargar el PDF fuente ni correr `build_kb` para probar el chat.
+
+Verifica con: `curl http://localhost:8000/api/health`
+
+### 3. Frontend (Angular)
+
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+Abre `http://localhost:4200`. El chat habla con el estudiante de prueba "Ana Torres"
+(id=1, primer grado de primaria) contra `http://localhost:8000`.
+
+---
+
+## ✅ Estado actual / Pendientes
+
+**Funcionando:**
+- [x] Chat tutor end-to-end: Angular → FastAPI → ADK → LiteLLM → Ollama → Gemma 4, con RAG
+  sobre el currículo de MINEDU filtrado por grado del estudiante.
+- [x] CRUD de estudiantes (`/api/students`).
+- [x] Modelos de base de datos completos (materiales, quizzes, progreso, sesiones de chat).
+
+**Pendiente (fuera de alcance para el MVP de la hackathon):**
+- [ ] Lista de materiales en el frontend (el modelo de datos ya existe).
+- [ ] Test diagnóstico inicial.
+- [ ] Dashboard de profesor.
+- [ ] Quizzes y recomendaciones.
+- [ ] Login/autenticación.

@@ -1,11 +1,66 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.db.models import Student
-from app.models.schemas import StudentCreate, StudentUpdate, StudentOut
+from app.db.models import Student, ChatSession
+from app.models.schemas import StudentCreate, StudentUpdate, StudentOut, StudentLoginOut
 
 router = APIRouter(prefix="/api/students", tags=["students"])
+
+@router.post("/login", response_model=StudentLoginOut)
+def ingresar_estudiante(data: StudentCreate, db: Session = Depends(get_db)):
+    """
+    Endpoint para la pantalla de ingreso del estudiante (nombre + grado +
+    localidad, sin contraseña). Busca un estudiante existente por nombre y
+    grado (sin distinguir mayúsculas/tildes de más o menos espacios); si no
+    existe, lo crea.
+
+    Además crea una nueva ChatSession para esta "entrada" a la plataforma,
+    y devuelve su id: el frontend debe usar ese id como `session_id` al
+    llamar a /api/chat, para que los mensajes queden agrupados y asociados
+    correctamente en el historial.
+    """
+    nombre_normalizado = data.nombre.strip()
+
+    estudiante = (
+        db.query(Student)
+        .filter(
+            func.lower(Student.nombre) == nombre_normalizado.lower(),
+            Student.grado == data.grado,
+        )
+        .first()
+    )
+
+    if estudiante:
+        # Actualiza localidad por si cambió (ej. familia se mudó)
+        if data.localidad and estudiante.localidad != data.localidad:
+            estudiante.localidad = data.localidad
+            db.commit()
+            db.refresh(estudiante)
+    else:
+        estudiante = Student(
+            nombre=nombre_normalizado,
+            grado=data.grado,
+            localidad=data.localidad,
+        )
+        db.add(estudiante)
+        db.commit()
+        db.refresh(estudiante)
+
+    chat_session = ChatSession(student_id=estudiante.id)
+    db.add(chat_session)
+    db.commit()
+    db.refresh(chat_session)
+
+    return StudentLoginOut(
+        id=estudiante.id,
+        nombre=estudiante.nombre,
+        grado=estudiante.grado,
+        localidad=estudiante.localidad,
+        created_at=estudiante.created_at,
+        chat_session_id=chat_session.id,
+    )
 
 
 @router.get("", response_model=list[StudentOut])

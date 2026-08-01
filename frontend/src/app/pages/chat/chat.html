@@ -1,0 +1,64 @@
+@if (!student(); as _placeholder) {
+  <div class="onboarding">
+    <p class="greeting">¿Cómo te llamas? 😊</p>
+
+    <label class="field">
+      <span>Tu nombre</span>
+      <input
+        type="text"
+        placeholder="Escribe tu nombre..."
+        [ngModel]="nombreInput()"
+        (ngModelChange)="nombreInput.set($event)"
+        (keyup.enter)="comenzar()"
+      />
+    </label>
+
+    <label class="field">
+      <span>Tu grado</span>
+      <select [ngModel]="gradoInput()" (ngModelChange)="gradoInput.set($event)">
+        @for (g of grados; track g) {
+          <option [value]="g">{{ g }}</option>
+        }
+      </select>
+    </label>
+
+    @if (startError()) {
+      <p class="start-error">{{ startError() }}</p>
+    }
+
+    <button class="start-btn" (click)="comenzar()" [disabled]="startLoading()">
+      {{ startLoading() ? 'Un momento...' : 'Comenzar' }}
+    </button>
+  </div>
+} @else {
+  <main class="chat-window">
+    @for (msg of messages(); track $index) {
+      <div class="msg-row" [class.from-student]="msg.role === 'student'">
+        @if (msg.role === 'gemma') {
+          <div class="avatar-sm">🤖</div>
+        }
+        <div class="bubble" [class.gemma]="msg.role === 'gemma'" [class.student]="msg.role === 'student'">
+          {{ msg.text }}
+        </div>
+      </div>
+    }
+    @if (loading()) {
+      <div class="msg-row">
+        <div class="avatar-sm">🤖</div>
+        <div class="bubble gemma typing">Gemma está pensando...</div>
+      </div>
+    }
+  </main>
+
+  <footer class="composer">
+    <input
+      type="text"
+      placeholder="Escribe tu pregunta de matemática..."
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      (keyup.enter)="enviar()"
+      [disabled]="loading()"
+    />
+    <button class="send-btn" (click)="enviar()" [disabled]="loading()">➤</button>
+  </footer>
+}

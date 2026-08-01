@@ -129,10 +129,14 @@
 }
 
 .tts-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 8px;
   width: 28px;
   height: 28px;
+  padding: 0;
+  line-height: 1;
   border-radius: 50%;
   border: none;
   background: rgba(0, 64, 223, 0.1);

@@ -36,6 +36,7 @@ export interface ChatMessageRequest {
   student_id: number;
   session_id: number;
   message: string;
+  materia?: string;
 }
 
 export interface ChatResponse {

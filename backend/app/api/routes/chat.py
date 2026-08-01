@@ -89,10 +89,19 @@ async def chat_with_adk(payload: ChatRequest, db: Session = Depends(get_db)) -> 
             app_name=settings.app_name,
             user_id=user_id,
             session_id=adk_session_id,
-            state={"grado": estudiante.grado},
+            state={"grado": estudiante.grado, "materia": payload.materia},
         )
     except Exception:
         pass  # la sesión ya existía, seguimos usándola
+
+    # Si la sesión ya existía, create_session no hizo nada arriba (el
+    # except la ignoró), así que la materia se fija aquí explícitamente
+    # en cada mensaje en vez de depender de que el create haya funcionado.
+    sesion_previa = await _session_service.get_session(
+        app_name=settings.app_name, user_id=user_id, session_id=adk_session_id
+    )
+    if sesion_previa:
+        sesion_previa.state["materia"] = payload.materia
 
     contenido = types.Content(role="user", parts=[types.Part(text=payload.message)])
     

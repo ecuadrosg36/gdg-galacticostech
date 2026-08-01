@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
     <h2>📚 ¿Qué quieres aprender hoy?</h2>
     <p class="subtitle">Elige una materia para comenzar.</p>
 
-    <a routerLink="/chat" class="subject-row math">
+    <a routerLink="/chat" [queryParams]="{ materia: 'matematica' }" class="subject-row math">
       <div class="icon">🧮</div>
       <div class="text">
         <h3>Matemática</h3>
@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
       <span class="arrow">›</span>
     </a>
 
-    <a routerLink="/chat" class="subject-row comm">
+    <a routerLink="/chat" [queryParams]="{ materia: 'comunicacion' }" class="subject-row comm">
       <div class="icon">📖</div>
       <div class="text">
         <h3>Comunicación</h3>
@@ -28,7 +28,7 @@ import { RouterLink } from '@angular/router';
       <span class="arrow">›</span>
     </a>
 
-    <a routerLink="/chat" class="subject-row social">
+    <a routerLink="/chat" [queryParams]="{ materia: 'personal_social' }" class="subject-row social">
       <div class="icon">🌎</div>
       <div class="text">
         <h3>Personal Social</h3>

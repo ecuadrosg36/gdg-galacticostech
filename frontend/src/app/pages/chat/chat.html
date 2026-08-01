@@ -38,7 +38,21 @@
           <div class="avatar-sm">🤖</div>
         }
         <div class="bubble" [class.gemma]="msg.role === 'gemma'" [class.student]="msg.role === 'student'">
-          {{ msg.text }}
+          @if (msg.role === 'gemma') {
+            <span [innerHTML]="formatearTexto(msg.text)"></span>
+            @if (ttsSupported()) {
+              <button
+                class="tts-btn"
+                [class.speaking]="speakingIndex() === $index"
+                (click)="leerEnVozAlta(msg.text, $index)"
+                [attr.aria-label]="speakingIndex() === $index ? 'Detener lectura' : 'Escuchar respuesta'"
+              >
+                {{ speakingIndex() === $index ? '⏸️' : '🔊' }}
+              </button>
+            }
+          } @else {
+            {{ msg.text }}
+          }
         </div>
       </div>
     }
@@ -53,12 +67,23 @@
   <footer class="composer">
     <input
       type="text"
-      placeholder="Escribe tu pregunta de matemática..."
+      [placeholder]="listening() ? 'Escuchando...' : 'Escribe tu pregunta de ' + materiaLabel() + '...'"
       [ngModel]="draft()"
       (ngModelChange)="draft.set($event)"
       (keyup.enter)="enviar()"
-      [disabled]="loading()"
+      [disabled]="loading() || listening()"
     />
-    <button class="send-btn" (click)="enviar()" [disabled]="loading()">➤</button>
+    @if (voiceSupported()) {
+      <button
+        class="mic-btn"
+        [class.listening]="listening()"
+        (click)="toggleMic()"
+        [disabled]="loading()"
+        [attr.aria-label]="listening() ? 'Detener grabación' : 'Preguntar por voz'"
+      >
+        {{ listening() ? '⏹️' : '🎤' }}
+      </button>
+    }
+    <button class="send-btn" (click)="enviar()" [disabled]="loading() || listening()">➤</button>
   </footer>
 }

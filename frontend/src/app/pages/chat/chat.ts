@@ -83,6 +83,25 @@ export class Chat {
     }
   }
 
+  // Red de seguridad: el prompt le pide a Gemma texto plano, pero a veces
+  // igual devuelve Markdown/LaTeX (**negrita**, $$formula$$). Como no hay
+  // un renderer de Markdown en el chat, sin esto se veían los símbolos
+  // literales en pantalla. Escapa HTML primero (por seguridad, ya que el
+  // texto viene de un LLM) y recién ahí interpreta **negrita**.
+  protected formatearTexto(texto: string): string {
+    const escapado = texto
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    return escapado
+      .replace(/\$\$(.+?)\$\$/g, '$1')
+      .replace(/\$(.+?)\$/g, '$1')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/^[-*]\s+/gm, '• ');
+  }
+
   toggleMic(): void {
     if (!this.recognition || this.loading()) {
       return;

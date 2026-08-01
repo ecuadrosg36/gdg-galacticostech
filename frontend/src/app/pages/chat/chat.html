@@ -38,7 +38,11 @@
           <div class="avatar-sm">🤖</div>
         }
         <div class="bubble" [class.gemma]="msg.role === 'gemma'" [class.student]="msg.role === 'student'">
-          {{ msg.text }}
+          @if (msg.role === 'gemma') {
+            <span [innerHTML]="formatearTexto(msg.text)"></span>
+          } @else {
+            {{ msg.text }}
+          }
         </div>
       </div>
     }

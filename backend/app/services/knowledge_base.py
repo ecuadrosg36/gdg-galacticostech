@@ -169,7 +169,14 @@ def _reconstruir_indice_busqueda(db, index_path: Path) -> None:
         )
         textos.append(chunk.contenido)
 
-    vectorizer = TfidfVectorizer(max_features=5000)
+    # token_pattern por defecto de sklearn exige 2+ caracteres por token,
+    # así que descarta silenciosamente los números de un solo dígito
+    # ("6", "2", "4"...). Para un tutor de matemática de primer grado eso
+    # es fatal: "¿cuánto es 6 más 2?" y "¿cuánto es 4 más 4?" terminaban
+    # generando exactamente los mismos tokens ("cuánto", "es", "más") y
+    # por lo tanto los mismos resultados, sin importar los números reales
+    # de la pregunta. \w+ (en vez de \w\w+) conserva los dígitos sueltos.
+    vectorizer = TfidfVectorizer(max_features=5000, token_pattern=r"(?u)\b\w+\b")
     matrix = vectorizer.fit_transform(textos)
 
     index_path.parent.mkdir(parents=True, exist_ok=True)

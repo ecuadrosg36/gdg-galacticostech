@@ -1,143 +1,192 @@
 # Build with Gemma - GDG Lima
-
-## Galacticos Tech — Educación offline con IA para zonas rurales del Perú
+## Galácticos Tech — Tutor Educativo Offline con IA para zonas rurales del Perú
 
 > Build with Gemma - AI Competition | Track: **Local AI & Edge Intelligence**
 
-### 🎯 Propuesta
+## 🎯 Propuesta
 
-En muchas zonas rurales del Perú, el acceso a internet es limitado o inexistente, lo que restringe severamente el acceso de niños de nivel primario a materiales de apoyo educativo, tutorías o resolución de dudas fuera del horario de clase. Los docentes suelen atender aulas con niveles muy heterogéneos y pocas herramientas para monitorear el avance individual de cada estudiante.
+En muchas zonas rurales del Perú, el acceso a internet es limitado o inexistente, lo que
+restringe severamente el acceso de niños de nivel primario a materiales de apoyo educativo,
+tutorías o resolución de dudas fuera del horario de clase. La paradoja actual es que, aunque
+la IA puede resolver la educación personalizada, asume un privilegio inexistente en la
+realidad rural: la conectividad constante.
 
-**Galacticos Tech** es una plataforma educativa que corre **Gemma 4 completamente local** (sin depender de internet), pensada para nivel primario, que ofrece:
+**Galácticos Tech** resuelve este problema democratizando el acceso a la educación mediante
+una plataforma que corre **Gemma 4 completamente local** a través de una arquitectura de
+**Servidor Edge Comunitario**.
 
-- Un **tutor conversacional** que responde dudas de los estudiantes en lenguaje simple y adaptado a su edad.
-- **Materiales educativos** (texto, imágenes y video) organizados por materia y tema.
-- Un **test diagnóstico inicial** que determina el nivel del estudiante y personaliza su ruta de aprendizaje.
-- Un **panel de monitoreo para el profesor**, con seguimiento del progreso de cada alumno.
+El sistema se instala en la computadora central de un Centro de Acceso Digital (o laboratorio
+del colegio). Los estudiantes asisten y utilizan sus celulares básicos para conectarse a la
+red WiFi local (intranet), accediendo a un tutor inteligente sin consumir un solo megabyte de
+datos de internet.
 
-La clave del proyecto es que **todo funciona sin conexión a internet**: un solo dispositivo actúa como "servidor local" del colegio (una laptop o mini-PC), y los estudiantes acceden desde tablets o laptops por red WiFi local, sin necesidad de una señal de datos externa.
-
-### ODS y track
+## 🌍 ODS y Track
 
 - **Track:** Local AI & Edge Intelligence
-- **ODS:** 4 (Educación de Calidad), y de forma secundaria 10 (Reducción de las Desigualdades) por el
-  enfoque en cerrar la brecha de acceso entre zonas urbanas y rurales.
+- **ODS:** 4 (Educación de Calidad) y 10 (Reducción de las Desigualdades)
 
-### Fuentes de datos / contenido
+## 📚 Fuentes de conocimiento
 
-- Currículo Nacional y materiales de [MINEDU](https://www.gob.pe/minedu) / [Perú Educa](https://www.perueduca.pe/).
-- Datos abiertos de infraestructura educativa (conectividad rural) del [Portal de Datos Abiertos del Estado Peruano](https://www.datosabiertos.gob.pe/), usados para justificar el problema en el writeup.
+- Currículo Nacional y cuadernillos de [MINEDU](https://www.gob.pe/minedu) /
+  [Perú Educa](https://www.perueduca.pe/), usados para alimentar el motor RAG offline. Cada
+  material queda registrado con una `ruta_local` y una `url_web` de respaldo (la fuente
+  oficial), de modo que si el PDF no está presente en el servidor, el sistema puede
+  descargarlo una sola vez durante el preprocesamiento (nunca durante el chat en vivo).
+- Datos abiertos de infraestructura educativa (conectividad rural) del
+  [Portal de Datos Abiertos del Estado Peruano](https://www.datosabiertos.gob.pe/).
 
----
+## 🏗️ Arquitectura y Tecnologías
 
-## 🏗️ Arquitectura
-
-La app se divide en un frontend cliente (Angular) y un backend local que corre en un único dispositivo dentro del colegio, actuando como servidor edge sin salida a internet.
+El proyecto funciona con una arquitectura centralizada 100% offline. El frontend se
+construye en CSS plano, sin dependencias de CDNs externos, para garantizar que la UI cargue
+correctamente incluso sin conexión a internet.
 
 ```
 ┌─────────────────────────────────────────────┐
-│              Angular (Frontend)              │
-│   Corre en tablets/laptops de estudiantes     │
-│              y del profesor                   │
+│          Dispositivos Móviles Básicos        │
+│    (Navegador Web del celular del alumno)    │
 └───────────────────┬───────────────────────────┘
-                    │  HTTP / WebSocket
-                    │  (RED LOCAL — sin internet)
+                    │  HTTP (Frontend / API)
+                    │  Intranet Local (Sin Internet)
                     ▼
 ┌─────────────────────────────────────────────┐
-│         Backend: Python + FastAPI             │
-│      Corre en el "servidor local" del colegio │
+│       Servidor Edge (Centro de Acceso)        │
 │                                                │
-│   ┌──────────────┐      ┌──────────────────┐ │
-│   │  Google ADK   │─────▶│      Ollama       │ │
-│   │ (orquesta al  │      │  (sirve Gemma 4   │ │
-│   │ agente tutor, │      │  localmente:      │ │
-│   │ tools, sesión)│      │  gemma4:e2b/e4b)  │ │
-│   └──────────────┘      └──────────────────┘ │
+│  [ UI: Angular ]         [ API: FastAPI ]     │
 │                                                │
-│   ┌──────────────┐      ┌──────────────────┐ │
-│   │  Base de datos│      │  Almacenamiento   │ │
-│   │ (SQLite/       │      │  de archivos      │ │
-│   │  PostgreSQL)   │      │ (materiales:      │ │
-│   │ usuarios,      │      │  texto/imagen/    │ │
-│   │ materiales,    │      │  video, guardados │ │
-│   │ progreso, test │      │  localmente)      │ │
-│   └──────────────┘      └──────────────────┘ │
+│  ┌──────────────┐        ┌────────────────┐  │
+│  │  Google ADK   │───────▶│     Ollama      │  │
+│  │ (Orquestador  │        │ (Gemma 4 Local) │  │
+│  │  y Agentes,   │        │  modo "local"   │  │
+│  │  ToolContext) │        └────────────────┘  │
+│  └──────┬────────┘                            │
+│         │                ┌────────────────┐   │
+│         │                │  Gemini API     │   │
+│         ├───────────────▶│ (Gemma 4 cloud, │   │
+│         │                │  modo "cloud")  │   │
+│         │                └────────────────┘   │
+│         │                                     │
+│         ▼                                     │
+│  ┌──────────────────────────────────────┐    │
+│  │   Base de datos (SQLite/SQLAlchemy)   │    │
+│  │  Students · Teachers · Materials ·    │    │
+│  │  MaterialChunks · ChatSessions ·      │    │
+│  │  ChatMessages (con tema) · Quizzes    │    │
+│  └───────────────┬──────────────────────┘    │
+│                  │                            │
+│                  ▼                            │
+│  ┌──────────────────────────────────────┐    │
+│  │  Índice de búsqueda RAG (TF-IDF,      │    │
+│  │  scikit-learn) — reconstruido a       │    │
+│  │  partir de los MaterialChunks         │    │
+│  └──────────────────────────────────────┘    │
 └─────────────────────────────────────────────┘
 ```
 
-**Notas de diseño:**
-
-- Google ADK se integra con Ollama a través del conector **LiteLLM**, lo que permite mantener una arquitectura de agente (con herramientas, memoria y sesiones) mientras el modelo corre 100% local.
-- Los videos y materiales se almacenan localmente (no embebidos desde YouTube u otro servicio que requiera internet).
-
-### Stack tecnológico
+**El modelo (Gemma 4) es el mismo en ambos modos** — lo único que cambia es dónde corre:
+`ollama_chat/gemma4:e2b` en modo local, o `gemma-4-4b-it` vía la API de Gemini en modo cloud
+(útil como respaldo si el hardware disponible es más limitado, o durante desarrollo).
 
 | Componente | Tecnología |
 |---|---|
-| Frontend | Angular |
-| Diseño UI | Stitch |
+| Frontend | Angular (UI en CSS plano, sin CDNs externos) |
 | Backend / API | Python + FastAPI |
-| Orquestación del agente | Google ADK |
-| Modelo LLM | Gemma 4 (vía Ollama, local) |
+| Orquestación del agente | Google ADK (con `ToolContext` para pasar contexto de sesión) |
+| Modelo LLM | Gemma 4 (local vía Ollama, o cloud vía Gemini API) |
+| Base de datos | SQLite + SQLAlchemy |
+| Búsqueda / RAG | scikit-learn (TF-IDF) sobre chunks extraídos con PyMuPDF |
 | Control de versiones | GitHub |
 
----
+## 🧩 Módulos y Flujo del Sistema
 
-## 🧩 Módulos principales
+### MVP actual (Hackathon Sprint)
 
-### Vista Estudiante
+1. **Ingreso del estudiante** (`POST /api/students/ingresar`): el estudiante escribe su
+   nombre y selecciona su grado (y localidad). El backend busca si ya existe un registro
+   igual (sin distinguir mayúsculas ni espacios) y lo reutiliza; si no, lo crea. Cada ingreso
+   genera una nueva `ChatSession`.
+2. **Chat con Gemma** (`POST /api/chat`): interfaz conversacional orquestada por ADK, que
+   adapta el lenguaje a un niño de primaria. El grado del estudiante se inyecta en el estado
+   de la sesión (vía `ToolContext`), así la búsqueda de material **solo considera contenido
+   de su propio grado** — si no hay material cargado para ese grado, el tutor lo informa
+   claramente en vez de responder con contenido de otro nivel.
+3. **Material educativo (RAG)**: los cuadernillos del MINEDU se registran en la tabla
+   `materials` (con `ruta_local` y `url_web`), se procesan con PyMuPDF, se dividen en
+   fragmentos (`material_chunks`) y se indexan con TF-IDF. Ante una duda, el agente busca el
+   contexto localmente antes de responder, evitando alucinaciones.
+4. **Persistencia de conversación y tema**: cada intercambio (pregunta del
+   estudiante + respuesta del tutor) se guarda en `chat_messages`, junto con el **tema**
+   detectado en el material usado para responder. Esto ya deja lista la data para el futuro
+   dashboard docente (ej. "qué temas pregunta más cada estudiante").
+5. **CRUD de estudiantes** (`GET/POST/PUT/DELETE /api/students`): gestión administrativa
+   básica, con validación de que el `grado` sea uno de los valores oficiales reconocidos
+   (evita inconsistencias como comparar `"Primero de primaria"` contra `"primaria_primero"`).
 
-1. **Test diagnóstico inicial** — evaluación corta que determina el nivel actual del estudiante por materia.
-2. **Materiales por tema/materia** — contenido organizado jerárquicamente (ej. Matemática > Fracciones > Suma de fracciones), en texto, imagen y video.
-3. **Chatbot tutor** — agente basado en ADK + Gemma 4 que responde dudas en lenguaje simple, adaptado a niños de primaria.
-4. **Recomendaciones** — sugerencia del siguiente tema o refuerzo, según resultados del test y progreso.
-5. **Quizzes cortos por tema** — miden avance y alimentan el módulo de progreso.
+### Roadmap (futuras implementaciones)
 
-### Vista Profesor
+- **Quizzes**: evaluaciones cortas al final de cada tema para medir retención.
+- **Recomendaciones**: motor de sugerencias basado en el historial de temas ya consultados
+  (la tabla `chat_messages.tema` ya provee la data base para esto).
+- **Dashboard para profesores**: panel de monitoreo por estudiante y por tema (temas más
+  consultados, en cuáles se traba cada alumno), con sincronización a la nube cuando el
+  colegio recupera conectividad.
+- **Subida de materiales por el profesor**: mismo pipeline de extracción/indexado, expuesto
+  como endpoint de carga de archivos.
 
-6. **Gestión de contenido** — subir y organizar materiales por materia/tema, con nivel de dificultad.
-7. **Dashboard de monitoreo** — progreso general y por estudiante: temas completados, resultados de quizzes, tiempo de uso, alertas de dificultad recurrente.
-8. **Vista de detalle por alumno** — historial de interacciones con el chatbot, útil para detectar en qué se traba cada estudiante.
+## ⚠️ Limitaciones conocidas
 
-### Prioridad para el MVP (sprint de 1 día)
+Documentadas a propósito, como parte de las decisiones de ingeniería del sprint:
 
-1. Materiales (texto + imagen, video si alcanza el tiempo)
-2. Chatbot tutor (ADK + Ollama + Gemma 4) — núcleo técnico del proyecto
-3. Test diagnóstico inicial simple (5-10 preguntas)
-4. Dashboard de profesor básico (lista de materiales + progreso simple)
+- **Búsqueda TF-IDF sin stemming**: al comparar texto exacto, preguntas con plurales o
+  conjugaciones distintas al material original (ej. "triángulos" vs "triángulo") pueden no
+  encontrar coincidencia. Mejora futura: aplicar un stemmer en español antes de indexar.
+- **El índice de búsqueda se cachea en memoria del proceso**: si reconstruyes el índice
+  (`build_kb.py`) mientras el backend sigue corriendo, los cambios no se reflejan hasta
+  reiniciar el servidor.
+- **Manejo de errores parcial en el indexado**: si un material no tiene `ruta_local` ni
+  `url_web` válidos, o su PDF está corrupto, la reconstrucción del índice puede fallar por
+  completo en vez de saltar solo ese material (pendiente de aislar con manejo de errores por
+  material).
 
----
+## 🚀 Cómo correr el proyecto localmente (Demo End-to-End)
 
-## 🚀 Cómo correr el proyecto localmente
-
-### 1. Ollama + Gemma 4
+### 1. Preparar el modelo local (Ollama)
 
 ```bash
-# Instalar Ollama: https://ollama.com/download
 ollama pull gemma4:e2b
-# El servidor de Ollama queda corriendo en http://localhost:11434
 ```
 
-### 2. Backend (FastAPI)
+### 2. Levantar el backend (FastAPI)
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/Scripts/activate   # Windows Git Bash; en cmd/PowerShell: .venv\Scripts\activate
-pip install -r requirements.txt requests   # "requests" falta en requirements.txt, se instala aparte
+python -m venv venv
+
+# Activar entorno (Windows)
+venv\Scripts\activate
+# Activar entorno (Mac/Linux)
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+# Configurar entorno
 cp .env.example .env
+
+# Inicializar base de datos y cargar datos base
 python -m app.db.init_db
-python -m app.db.seed_data.seed_students
+python -m app.db.seed_students
+python -m app.db.seed_materials
+python -m app.scripts.build_kb
+
+# Levantar servidor
 uvicorn app.main:app --port 8000
 ```
 
-La base de conocimiento (`backend/storage/index/kb_index.pkl`) ya viene pre-construida y
-commiteada con 283 chunks del cuadernillo de Matemática - Primer Grado (MINEDU), así que
-no hace falta descargar el PDF fuente ni correr `build_kb` para probar el chat.
+Verifica que el backend responde en: `http://localhost:8000/api/health`
 
-Verifica con: `curl http://localhost:8000/api/health`
+### 3. Levantar el frontend (Angular)
 
-### 3. Frontend (Angular)
+En una nueva terminal:
 
 ```bash
 cd frontend
@@ -145,22 +194,22 @@ npm install
 ng serve
 ```
 
-Abre `http://localhost:4200`. El chat habla con el estudiante de prueba "Ana Torres"
-(id=1, primer grado de primaria) contra `http://localhost:8000`.
+Abre `http://localhost:4200` en tu navegador.
 
----
+### Para probar
 
-## ✅ Estado actual / Pendientes
+1. Ingresa con un estudiante de prueba (ej. "Ana Torres", Primero de primaria) — si no
+   existe, se crea automáticamente al ingresar.
+2. Escribe una pregunta de matemática básica y confirma que Gemma genera la respuesta
+   consumiendo el contenido oficial del MINEDU, de forma 100% offline (modo local).
+3. Repite la pregunta con un estudiante de un grado sin material cargado, y confirma que el
+   tutor lo informa claramente en vez de responder con contenido de otro nivel.
 
-**Funcionando:**
-- [x] Chat tutor end-to-end: Angular → FastAPI → ADK → LiteLLM → Ollama → Gemma 4, con RAG
-  sobre el currículo de MINEDU filtrado por grado del estudiante.
-- [x] CRUD de estudiantes (`/api/students`).
-- [x] Modelos de base de datos completos (materiales, quizzes, progreso, sesiones de chat).
+## 📋 Pendientes / decisiones abiertas
 
-**Pendiente (fuera de alcance para el MVP de la hackathon):**
-- [ ] Lista de materiales en el frontend (el modelo de datos ya existe).
-- [ ] Test diagnóstico inicial.
-- [ ] Dashboard de profesor.
-- [ ] Quizzes y recomendaciones.
-- [ ] Login/autenticación.
+- [ ] Aislar errores por material en `build_index_from_db` (try/except individual + commit
+      progresivo)
+- [ ] Endpoint para invalidar/recargar el índice en memoria sin reiniciar el servidor
+- [ ] Stemming en español para mejorar la búsqueda TF-IDF
+- [ ] Dashboard docente (consumiendo `chat_messages.tema` ya disponible)
+- [ ] Endpoint de subida de materiales para profesores
